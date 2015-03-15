@@ -16,6 +16,14 @@ using namespace std;
 int N,M,K, time_left, player;
 
 
+struct gamestate{
+    int posx;
+    int posy;
+    int oppx;
+    int oppy;
+    vector< pair<int,int> > walls;
+    gamestate(){};
+};
 
 
 
@@ -71,34 +79,34 @@ int main(int argc, char *argv[])
     float TL;
     int om,oro,oc;
     int m,r,c;
-	int d=3;
+    int d=3;
     char s[100];
-	int x=1;
+    int x=1;
     if(player == 1)
     {
         
         memset(sendBuff, '0', sizeof(sendBuff)); 
         string temp;
-	cin>>m>>r>>c;
-        
+    // cin>>m>>r>>c;
+        m=0; r=2;c=5;
         snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
         write(sockfd, sendBuff, strlen(sendBuff));
 
-	memset(recvBuff, '0',sizeof(recvBuff));
+        memset(recvBuff, '0',sizeof(recvBuff));
         n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
         recvBuff[n] = 0;
         sscanf(recvBuff, "%f %d", &TL, &d);
-	cout<<TL<<" "<<d<<endl;
-	if(d==1)
-	{
-		cout<<"You win!! Yayee!! :D ";
-		x=0;
-	}
-	else if(d==2)
-	{
-		cout<<"Loser :P ";
-		x=0;
-	}
+        cout<<TL<<" "<<d<<endl;
+        if(d==1)
+        {
+            cout<<"You win!! Yayee!! :D ";
+            x=0;
+        }
+        else if(d==2)
+        {
+            cout<<"Loser :P ";
+            x=0;
+        }
     }
 
     while(x)
@@ -107,38 +115,38 @@ int main(int argc, char *argv[])
         n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
         recvBuff[n] = 0;
         sscanf(recvBuff, "%d %d %d %d", &om,&oro,&oc,&d);
-	cout << om<<" "<<oro<<" "<<oc << " "<<d<<endl;
-    	if(d==1)
-	{
-		cout<<"You win!! Yayee!! :D ";
-		break;
-	}
-	else if(d==2)
-	{
-		cout<<"Loser :P ";
-		break;
-	}
-        memset(sendBuff, '0', sizeof(sendBuff)); 
-        string temp;
-	cin>>m>>r>>c;
-        snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
-        write(sockfd, sendBuff, strlen(sendBuff));
+        cout << om<<" "<<oro<<" "<<oc << " "<<d<<endl;
+        if(d==1)
+        {
+            cout<<"You win!! Yayee!! :D ";
+            break;
+        }
+        else if(d==2)
+        {
+            cout<<"Loser :P ";
+            break;
+        }
+            memset(sendBuff, '0', sizeof(sendBuff)); 
+            string temp;
+            cin>>m>>r>>c;
+            snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
+            write(sockfd, sendBuff, strlen(sendBuff));
 
-	memset(recvBuff, '0',sizeof(recvBuff));
-        n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
-        recvBuff[n] = 0;
-        sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
-	cout<<TL<<" "<<d<<endl;
-	if(d==1)
-	{
-		cout<<"You win!! Yayee!! :D ";
-		break;
-	}
-	else if(d==2)
-	{
-		cout<<"Loser :P ";
-		break;
-	}
+            memset(recvBuff, '0',sizeof(recvBuff));
+            n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
+            recvBuff[n] = 0;
+            sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
+            cout<<TL<<" "<<d<<endl;
+            if(d==1)
+            {
+                cout<<"You win!! Yayee!! :D ";
+                break;
+            }
+            else if(d==2)
+            {
+                cout<<"Loser :P ";
+                break;
+            }
     }
     cout<<endl<<"The End"<<endl;
     return 0;
