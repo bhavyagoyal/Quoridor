@@ -130,6 +130,7 @@ void search_init(){
 void search(vector<int> explored, int path_length ,node start, bool self){
     // start.visited =true;
     // cout<<"pos= "<<(start.p.y-1)*m+start.p.x-1<<endl;
+    int selfint = self?1:0;
     explored[(start.p.x-1)*M+start.p.y-1]=1;
     if(inGoal(start,self)){
         // cout<<"Goal"<<endl;
@@ -145,7 +146,7 @@ void search(vector<int> explored, int path_length ,node start, bool self){
             for(int i=0;i<start.adj.size();i++)
             {
                 pos p=start.adj[i].p;
-                if(path_length+1+(N-p.x)<global_min)
+                if(path_length+1+abs((N-1)*selfint+1-p.x)<global_min)
                 {
                     node child=adjList[(p.x-1)*M+p.y-1];
                     child.cost = path_length+1+(N-p.x);
@@ -159,7 +160,7 @@ void search(vector<int> explored, int path_length ,node start, bool self){
                 pos p=child.p;
                 // cout<<"new Pos= "<<(p.y-1)*m+p.x-1<<endl;
                 if(explored[(p.x-1)*M+p.y-1]!=1){
-                    if(global_min> path_length+1 + (N-p.x)){
+                    if(global_min> path_length+1 + abs((N-1)*selfint+1-p.x)){
                     // cout<<"new Pos searched= "<<(p.y-1)*m+p.x-1<<endl;
                         search(explored,path_length+1,adjList[(p.x-1)*M+p.y-1],self);
                     }
@@ -190,8 +191,7 @@ int minpathopp(gamestate a){
     for(int i=0;i<M*N;i++){
         explored[i]=0;
     }
-    node start;
-    search(explored,0,adjList[(a.self.x-1)*M+a.self.y-1],false);
+    search(explored,0,adjList[(a.opp.x-1)*M+a.opp.y-1],false);
     return global_min;
 }
 
@@ -218,7 +218,7 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
     if(a.self.x==N){
         return minpathopp(a);
     }
-    if(depth>=2){
+    if(depth>=1){
         return minpathopp(a)-minpathself(a);
     }
     int child;
@@ -420,8 +420,11 @@ int minVal(gamestate a,int alpha, int beta,int depth){
     if(a.opp.x==1){
         return minpathopp(a);
     }
-    if(depth>=2){
-        return minpathopp(a)-minpathself(a);
+    if(depth>=1){
+        int minpathop = minpathopp(a);
+        int minpathsel = minpathself(a);
+        cout<<"Utility "<<minpathop<<" "<<minpathsel<<endl;
+        return minpathop-minpathsel;
     }
     int child;
     int minchild=INT_MAX;
