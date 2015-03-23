@@ -55,12 +55,12 @@ int N, M, K;
 int time_left, player;
 gamestate current;
 int **walls;
-vector< node > adjList;
+// vector< node > adjList;
 vector<node> goal,goal2;
 int global_min = INT_MAX;
-vector< int > path;
-int adjMatrix[82][82];
-int tempadjMatrix[82][82];
+// vector< int > path;
+// int adjMatrix[82][82];
+// int tempadjMatrix[82][82];
 bool visited[82];
 const int gdepth=2;
 int gameresult=3;
@@ -69,25 +69,25 @@ bool inGoal(pos p, int self){
     return (self==1)?(p.x == N):(p.x == 1);
 }
 
-void search_init(){
-    memcpy(tempadjMatrix, adjMatrix, sizeof (int) * (M*N+1)*(M*N+1));
-    for(int i=1; i <= N; i++){
-        for(int j=1;j<= M;j++){
-            if(walls[i][j]==1){ 
-                tempadjMatrix[(i-1)*M+j][(i-1)*M+j-1]=0;
-                tempadjMatrix[(i-1)*M+j-1][(i-1)*M+j]=0;
-                tempadjMatrix[(i-2)*M+j][(i-2)*M+j-1]=0;
-                tempadjMatrix[(i-2)*M+j-1][(i-2)*M+j]=0;
-            }
-            if(walls[i][j]==2){
-                    tempadjMatrix[(i-1)*M+j][(i-2)*M+j]=0;
-                    tempadjMatrix[(i-2)*M+j][(i-1)*M+j]=0;
-                    tempadjMatrix[(i-1)*M+j-1][(i-2)*M+j-1]=0;
-                    tempadjMatrix[(i-2)*M+j-1][(i-1)*M+j-1]=0;
-            }
-        }
-    }
-}
+// void search_init(){
+//     memcpy(tempadjMatrix, adjMatrix, sizeof (int) * (M*N+1)*(M*N+1));
+//     for(int i=1; i <= N; i++){
+//         for(int j=1;j<= M;j++){
+//             if(walls[i][j]==1){ 
+//                 tempadjMatrix[(i-1)*M+j][(i-1)*M+j-1]=0;
+//                 tempadjMatrix[(i-1)*M+j-1][(i-1)*M+j]=0;
+//                 tempadjMatrix[(i-2)*M+j][(i-2)*M+j-1]=0;
+//                 tempadjMatrix[(i-2)*M+j-1][(i-2)*M+j]=0;
+//             }
+//             if(walls[i][j]==2){
+//                     tempadjMatrix[(i-1)*M+j][(i-2)*M+j]=0;
+//                     tempadjMatrix[(i-2)*M+j][(i-1)*M+j]=0;
+//                     tempadjMatrix[(i-1)*M+j-1][(i-2)*M+j-1]=0;
+//                     tempadjMatrix[(i-2)*M+j-1][(i-1)*M+j-1]=0;
+//             }
+//         }
+//     }
+// }
 
 std::vector<pos> neighbour(pos a, pos b){
     std::vector<pos> ans;
@@ -136,6 +136,30 @@ std::vector<pos> neighbour(pos a, pos b){
             }
             if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
                 ans.push_back(pos(a.x+1,a.y-1));
+            }
+        }
+        if(a.x>1 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && ((walls[a.x-1][a.y]==2) || (walls[a.x-1][a.y+1]==2))){
+            if( (a.y<M) && (walls[a.x][a.y+1]!=1) && (walls[a.x-1][a.y+1]!=1)){
+                ans.push_back(pos(a.x-1,a.y+1));
+            }
+            if( a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x-1][a.y]!=1)){
+                ans.push_back(pos(a.x-1,a.y-1));
+            }
+        }
+        if(a.y<M && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && ((walls[a.x][a.y+2]==1) || (walls[a.x+1][a.y+2]==1))){
+            if( (a.x<N) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+1][a.y+2]!=2)){
+                ans.push_back(pos(a.x+1,a.y+1));
+            }
+            if( a.x>1 && (walls[a.x][a.y+1]!=2) && (walls[a.x][a.y+2]!=2)){
+                ans.push_back(pos(a.x-1,a.y+1));
+            }
+        }
+        if(a.y>1 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && ((walls[a.x][a.y-1]==1) || (walls[a.x+1][a.y-1]==1))){
+            if( (a.x<N) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y-1]!=2)){
+                ans.push_back(pos(a.x+1,a.y-1));
+            }
+            if( a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y-1]!=2)){
+                ans.push_back(pos(a.x-1,a.y-1));
             }
         }
     }
@@ -199,7 +223,7 @@ void printgs(gamestate a){
 }
 
 int utility(gamestate a){
-    search_init();
+    // search_init();
     // printgs(a);
     // global_min = INT_MAX;
     // cout<<"bgmin "<<(a.self.x-1)*M+ a.self.y<<" "<<(a.opp.x-1)*M+ a.opp.y<<endl;
@@ -737,30 +761,30 @@ int minVal(gamestate a,int alpha, int beta,int depth){
 }
 
 
-void globalsearchinit(){
-    memset(adjMatrix, 0, sizeof(int) * (M*N+1)*(N*M+1));
-    for(int i=1; i <= N; i++){
-        for(int j=1;j<= M;j++){
-            int first = (i-1)*M+j;         
-            if(j+1<=M){
-                adjMatrix[first][(i-1)*M+j+1]=1;
-                adjMatrix[(i-1)*M+j+1][first]=1;                       
-            }
-            if(i-1>0){
-                adjMatrix[first][(i-2)*M+j]=1;
-                adjMatrix[(i-2)*M+j][first]=1;
-            }
-            if(i+1 <=N){
-                adjMatrix[first][(i)*M+j]=1;
-                adjMatrix[(i)*M+j][first]=1;
-            }
-            if(j-1>0){
-                adjMatrix[first][(i-1)*M+j-1]=1;
-                adjMatrix[(i-1)*M+j-1][first]=1;
-            }
-        }
-    }
-}
+// void globalsearchinit(){
+//     memset(adjMatrix, 0, sizeof(int) * (M*N+1)*(N*M+1));
+//     for(int i=1; i <= N; i++){
+//         for(int j=1;j<= M;j++){
+//             int first = (i-1)*M+j;         
+//             if(j+1<=M){
+//                 adjMatrix[first][(i-1)*M+j+1]=1;
+//                 adjMatrix[(i-1)*M+j+1][first]=1;                       
+//             }
+//             if(i-1>0){
+//                 adjMatrix[first][(i-2)*M+j]=1;
+//                 adjMatrix[(i-2)*M+j][first]=1;
+//             }
+//             if(i+1 <=N){
+//                 adjMatrix[first][(i)*M+j]=1;
+//                 adjMatrix[(i)*M+j][first]=1;
+//             }
+//             if(j-1>0){
+//                 adjMatrix[first][(i-1)*M+j-1]=1;
+//                 adjMatrix[(i-1)*M+j-1][first]=1;
+//             }
+//         }
+//     }
+// }
 
 int main(int argc, char *argv[])
 {
@@ -827,7 +851,7 @@ int main(int argc, char *argv[])
     }
 
     // cerr<<"H"<<endl;
-    globalsearchinit();
+    // globalsearchinit();
     // cerr<<"I"<<endl;
     if(player == 1)
     {
