@@ -378,23 +378,24 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     //     }
     // }
     // cout<<"H8"<<endl;
-    std::vector<pos> ans = neighbour(a.self,a.opp);
-    for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
-        gamestate b = gamestate(a);
-        b.self.x=it->x;
-        b.self.y=it->y;
-        child = minVal(b,alpha,beta,depth+1);
-        cout<<"child " <<child<<endl;
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return move(0,b.self);
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
+    if(gameresult!=1){
+        std::vector<pos> ans = neighbour(a.self,a.opp);
+        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+            gamestate b = gamestate(a);
+            b.self.x=it->x;
+            b.self.y=it->y;
+            child = minVal(b,alpha,beta,depth+1);
+            cout<<"child " <<child<<endl;
+            alpha = max(alpha,child);
+            if(alpha>=beta){
+                return move(0,b.self);
+            }
+            if(maxchild<child){
+                maxchild=child;
+                temp=b;
+            }
+        }        
     }
-
 
     bool bestwall=false;
     pos wallpos;
@@ -402,47 +403,50 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     //jump condition
     //wall block jump
     //add wall //can reduce the depth for the case of walls
-    if(a.wallself>0){
-        for(int i=2;i<=N;i++){
-            for(int j=2;j<=M;j++){
-                cout<< i<< " "<<j<<endl;
-                if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
-                    walls[i][j]=1;
-                    gamestate b = gamestate(a);
-                    child = minVal(b,alpha,beta,depth+1);
-                    alpha = max(alpha,child);
-                    walls[i][j]=0;
-                    if(alpha>=beta){
-                        return move(2,pos(i,j));
+    if(gameresult!=2){
+        if(a.wallself>0){
+            for(int i=2;i<=N;i++){
+                for(int j=2;j<=M;j++){
+                    cout<< i<< " "<<j<<endl;
+                    if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
+                        walls[i][j]=1;
+                        gamestate b = gamestate(a);
+                        child = minVal(b,alpha,beta,depth+1);
+                        alpha = max(alpha,child);
+                        walls[i][j]=0;
+                        if(alpha>=beta){
+                            return move(2,pos(i,j));
+                        }
+                        if(maxchild<child){
+                            maxchild=child;
+                            temp=b;
+                            wallpos = pos(i,j);
+                            bestwall=true;
+                            vert=true;
+                        }
                     }
-                    if(maxchild<child){
-                        maxchild=child;
-                        temp=b;
-                        wallpos = pos(i,j);
-                        bestwall=true;
-                        vert=true;
-                    }
-                }
-                if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
-                    walls[i][j]=2;
-                    gamestate b = gamestate(a);
-                    child = minVal(b,alpha,beta,depth+1);
-                    alpha = max(alpha,child);
-                    walls[i][j]=0;
-                    if(alpha>=beta){
-                        return move(1,pos(i,j));
-                    }
-                    if(maxchild<child){
-                        maxchild=child;
-                        temp=b;
-                        wallpos = pos(i,j);
-                        bestwall=true;
-                        vert=false;
+                    if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
+                        walls[i][j]=2;
+                        gamestate b = gamestate(a);
+                        child = minVal(b,alpha,beta,depth+1);
+                        alpha = max(alpha,child);
+                        walls[i][j]=0;
+                        if(alpha>=beta){
+                            return move(1,pos(i,j));
+                        }
+                        if(maxchild<child){
+                            maxchild=child;
+                            temp=b;
+                            wallpos = pos(i,j);
+                            bestwall=true;
+                            vert=false;
+                        }
                     }
                 }
             }
         }        
     }
+
 
         cout<<"Best wall "<<bestwall<<endl;
         printgs(temp);
@@ -456,6 +460,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
             return move(1,wallpos);
         }
         return move(0,temp.self);
+
 }
 
 
