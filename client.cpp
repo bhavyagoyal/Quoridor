@@ -27,6 +27,19 @@ struct pos{
     }
 };
 
+struct move{
+    int mov;//This is opposite of what we have in code //0 for move //2 for wall vertical // 1 for wall horizontal
+    pos posit;
+    move(){};
+    move(int a, pos b) : mov(a), posit(b){};
+    // bool operator<( const pos & d ) const {
+    //     if(x==d.x){
+    //         return y<d.y;
+    //     }
+    //     return  x< d.x;
+    // }
+};
+
 struct gamestate{
     pos self;
     pos opp;
@@ -55,7 +68,8 @@ vector< int > path;
 int adjMatrix[82][82];
 int tempadjMatrix[82][82];
 bool visited[82];
-const int gdepth=4;
+const int gdepth=2;
+int gameresult=3;
 
 bool inGoal(pos p, int self){
     return (self==1)?(p.x == N):(p.x == 1);
@@ -91,7 +105,9 @@ int bfs(int start,int self){
     queue.push_back(start);
     queue.push_back(-1);
     int level=0;
+    int count_debug=0;
     while(!queue.empty()){
+        count_debug++;
         int root = queue.front();
         queue.pop_front();
         if(root==-1){
@@ -104,6 +120,7 @@ int bfs(int start,int self){
             continue;
         }
         if(inGoal(pos(((root-1)/M) +1,(root-1)%M +1),self)){
+                // cout<<"Dfs"<<count_debug;
                 return level;
         }
         for(int i=1;i<=M*N;i++){
@@ -115,48 +132,47 @@ int bfs(int start,int self){
             }
         }
     }
+    // cout<<"Dfs"<<count_debug;
     return INT_MAX;
 }
 
+std::vector<pos> neighbour(pos a, pos b){
+    std::vector<pos> ans;
+    if(a.x<N && (b.x!=(a.x+1) || b.y!=a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
+        ans.push_back(pos(a.x+1,a.y));
+    }
+    if(a.x>1 && (b.x!=(a.x-1) || b.y!=a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
+        ans.push_back(pos(a.x-1,a.y));
+    }
+    if(a.y<M && (b.y!=(a.y+1) || b.x!=a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
+        ans.push_back(pos(a.x,a.y+1));
+    }
+    if(a.y>1 && (b.y!=(a.y-1) || b.x!=a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
+        ans.push_back(pos(a.x,a.y-1));
+    }
+    if(a.x<N-1 && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+2][a.y]!=2) && (walls[a.x+2][a.y+1]!=2)){
+        ans.push_back(pos(a.x+2,a.y));
+    }
+    if(a.x>2 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && (walls[a.x-1][a.y]!=2) && (walls[a.x-1][a.y+1]!=2)){
+        ans.push_back(pos(a.x-2,a.y));
+    }
+    if(a.y<M-1 && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x][a.y+2]!=1) && (walls[a.x+1][a.y+2]!=1)){
+        ans.push_back(pos(a.x,a.y+2));
+    }
+    if(a.y>2 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && (walls[a.x][a.y-1]!=1) && (walls[a.x+1][a.y-1]!=1)){
+        ans.push_back(pos(a.x,a.y-2));
+    }
+    if(a.x<N && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && ((walls[a.x+2][a.y]!=2) || (walls[a.x+2][a.y+1]!=2))){
+        if( (a.y<M) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x+2][a.y+1]!=1)){
+            ans.push_back(pos(a.x+1,a.y+1));
+        }
+        if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
+            ans.push_back(pos(a.x+1,a.y-1));
+        }
+    }
+    return ans;
+}
 
-
-// void search(int* explored, int path_length ,pos start, int self){
-//     explored[(start.x-1)*M+start.y-1]=1;
-//     if(inGoal(start,self)){
-//         if(global_min> path_length){
-//             global_min = path_length;
-//         }
-//     }
-//     else{
-//             priority_queue<node , vector<node> > child_heap ;
-//             for(int i=1;i<=M*N;i++){
-//                 if(tempadjMatrix[(start.x-1)*M+start.y][i]!=0){
-
-//                     pos p(((i-1)/M) + 1,((i-1)%M)+1);
-//                     if(path_length+1+abs((N-1)*self+1-p.x)<global_min)
-//                     {
-//                         node child;
-//                         child.p = p;
-//                         child.cost = path_length+1+abs((N-1)*self+1-p.x);
-//                         child_heap.push(child);
-//                     }
-//                 }
-                
-//             }
-//             while(!child_heap.empty())
-//             {
-//                 node child = child_heap.top();
-//                 child_heap.pop();
-//                 pos p=child.p;
-//                 if(explored[(p.x-1)*M+p.y-1]!=1){
-//                     if(global_min> path_length+1 + abs((N-1)*self+1-p.x)){
-//                         search(explored,path_length+1,p,self);
-//                     }
-//                 }
-//             }
-//     }
-//     explored[(start.x-1)*M+start.y-1]=0;
-// }
 void printgs(gamestate a){
     cout<<"Self "<<a.self.x<<" "<<a.self.y<<endl;
     cout<<"Opp "<<a.opp.x<<" "<<a.opp.y<<endl;
@@ -192,147 +208,176 @@ int utility(gamestate a){
 
 int minVal(gamestate a,int alpha,int beta, int depth);
 
-int maxValO(gamestate a,int alpha,int beta,int depth){
+move maxValO(gamestate a,int alpha,int beta,int depth){
     // if(depth>=gdepth){
     //     return utility(a);
     // }
     int child;
     int maxchild=INT_MIN;
     gamestate temp;
-    if(a.self.x<N && (a.opp.x!=(a.self.x+1) || a.opp.y!=a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2)){
+    // if(a.self.x<N && (a.opp.x!=(a.self.x+1) || a.opp.y!=a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x+1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    // }
+    // cout<<"H"<<endl;
+
+    // if(a.self.x>1 && (a.opp.x!=(a.self.x-1) || a.opp.y!=a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x-1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //         // return child;
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H2"<<endl;
+    // if(a.self.y<M && (a.opp.y!=(a.self.y+1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y+1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H3"<<endl;
+    // if(a.self.y>1 && (a.opp.y!=(a.self.y-1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y-1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H4"<<endl;
+    // if(a.self.x<N-1 && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && (walls[a.self.x+2][a.self.y]!=2) && (walls[a.self.x+2][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x+2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H5"<<endl;
+    // if(a.self.x>2 && (a.opp.x==(a.self.x-1) && a.opp.y==a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2) && (walls[a.self.x-1][a.self.y]!=2) && (walls[a.self.x-1][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x-2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H6"<<endl;
+    // if(a.self.y<M-1 && (a.opp.y==(a.self.y+1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x][a.self.y+2]!=1) && (walls[a.self.x+1][a.self.y+2]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y+2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H7"<<endl;
+    // if(a.self.y>2 && (a.opp.y==(a.self.y-1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x][a.self.y-1]!=1) && (walls[a.self.x+1][a.self.y-1]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y-2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return move(0,b.self);
+    //     }
+    //     if(maxchild<child){
+    //         maxchild=child;
+    //         temp=b;
+    //     }
+    // }
+    // cout<<"H8"<<endl;
+
+    // if(a.self.x<N && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && ((walls[a.self.x+2][a.self.y]!=2) || (walls[a.self.x+2][a.self.y+1]!=2))){
+    //     if( (a.self.y<M) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x+2][a.self.y+1]!=1)){
+    //         gamestate b = gamestate(a);
+    //         b.self.x=a.self.x+1;
+    //         b.self.y=a.self.y+1;
+    //         child = minVal(b,alpha,beta,depth+1);
+    //         alpha = max(alpha,child);
+    //         if(alpha>=beta){
+    //             return move(0,b.self);
+    //         }
+    //         if(maxchild<child){
+    //             maxchild=child;
+    //             temp=b;
+    //         }
+    //     }
+    //     if( a.self.y>1 && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x+2][a.self.y]!=1)){
+    //         gamestate b = gamestate(a);
+    //         b.self.x=a.self.x+1;
+    //         b.self.y=a.self.y-1;            
+    //         child = minVal(b,alpha,beta,depth+1);
+    //         alpha = max(alpha,child);
+    //         if(alpha>=beta){
+    //             return move(0,b.self);
+    //         }
+    //         if(maxchild<child){
+    //             maxchild=child;
+    //             temp=b;
+    //         }
+    //     }
+    // }
+    // cout<<"H8"<<endl;
+    std::vector<pos> ans = neighbour(a.self,a.opp);
+    for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
         gamestate b = gamestate(a);
-        b.self.x=a.self.x+1;
+        b.self.x=it->x;
+        b.self.y=it->y;
         child = minVal(b,alpha,beta,depth+1);
         alpha = max(alpha,child);
+        if(alpha>=beta){
+            return move(0,b.self);
+        }
         if(maxchild<child){
             maxchild=child;
             temp=b;
         }
-        if(alpha>=beta){
-            return child;
-        }
     }
-    if(a.self.x>1 && (a.opp.x!=(a.self.x-1) || a.opp.y!=a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x-1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.y<M && (a.opp.y!=(a.self.y+1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y+1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.y>1 && (a.opp.y!=(a.self.y-1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y-1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.x<N-1 && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && (walls[a.self.x+2][a.self.y]!=2) && (walls[a.self.x+2][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x+2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.x>2 && (a.opp.x==(a.self.x-1) && a.opp.y==a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2) && (walls[a.self.x-1][a.self.y]!=2) && (walls[a.self.x-1][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x-2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.y<M-1 && (a.opp.y==(a.self.y+1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x][a.self.y+2]!=1) && (walls[a.self.x+1][a.self.y+2]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y+2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.y>2 && (a.opp.y==(a.self.y-1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x][a.self.y-1]!=1) && (walls[a.self.x+1][a.self.y-1]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y-2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        if(maxchild<child){
-            maxchild=child;
-            temp=b;
-        }
-    }
-    if(a.self.x<N && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && ((walls[a.self.x+2][a.self.y]!=2) || (walls[a.self.x+2][a.self.y+1]!=2))){
-        if( (a.self.y<M) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x+2][a.self.y+1]!=1)){
-            gamestate b = gamestate(a);
-            b.self.x=a.self.x+1;
-            b.self.y=a.self.y+1;
-            child = minVal(b,alpha,beta,depth+1);
-            alpha = max(alpha,child);
-            if(alpha>=beta){
-                return child;
-            }
-            if(maxchild<child){
-                maxchild=child;
-                temp=b;
-            }
-        }
-        if( a.self.y>1 && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x+2][a.self.y]!=1)){
-            gamestate b = gamestate(a);
-            b.self.x=a.self.x+1;
-            b.self.y=a.self.y-1;            
-            child = minVal(b,alpha,beta,depth+1);
-            alpha = max(alpha,child);
-            if(alpha>=beta){
-                return child;
-            }
-            if(maxchild<child){
-                maxchild=child;
-                temp=b;
-            }
-        }
-    }
+
+
     bool bestwall=false;
     pos wallpos;
     bool vert;
@@ -350,7 +395,7 @@ int maxValO(gamestate a,int alpha,int beta,int depth){
                     alpha = max(alpha,child);
                     walls[i][j]=0;
                     if(alpha>=beta){
-                        return child;
+                        return move(2,pos(i,j));
                     }
                     if(maxchild<child){
                         maxchild=child;
@@ -367,7 +412,7 @@ int maxValO(gamestate a,int alpha,int beta,int depth){
                     alpha = max(alpha,child);
                     walls[i][j]=0;
                     if(alpha>=beta){
-                        return child;
+                        return move(1,pos(i,j));
                     }
                     if(maxchild<child){
                         maxchild=child;
@@ -386,11 +431,16 @@ int maxValO(gamestate a,int alpha,int beta,int depth){
         cout<<"wall "<<wallpos.x<<" "<<wallpos.y<<endl;
         cout<<"Dir "<<vert<<endl;
         cout<<"M "<<maxchild<<endl;
-    if(maxchild==INT_MIN){
-        return INT_MAX;
-    }
-    return maxchild;
+        if(bestwall && vert){
+            return move(2,wallpos);
+        }
+        else if(bestwall && !vert){
+            return move(1,wallpos);
+        }
+        return move(0,temp.self);
 }
+
+
 
 int maxVal(gamestate a,int alpha,int beta,int depth){
     if(depth>=gdepth){
@@ -398,110 +448,128 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
     }
     int child;
     int maxchild=INT_MIN;
-    if(a.self.x<N && (a.opp.x!=(a.self.x+1) || a.opp.y!=a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2)){
+    // if(a.self.x<N && (a.opp.x!=(a.self.x+1) || a.opp.y!=a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x+1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     maxchild=max(maxchild,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    // }
+    // if(a.self.x>1 && (a.opp.x!=(a.self.x-1) || a.opp.y!=a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x-1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.y<M && (a.opp.y!=(a.self.y+1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y+1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.y>1 && (a.opp.y!=(a.self.y-1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y-1;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.x<N-1 && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && (walls[a.self.x+2][a.self.y]!=2) && (walls[a.self.x+2][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x+2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.x>2 && (a.opp.x==(a.self.x-1) && a.opp.y==a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2) && (walls[a.self.x-1][a.self.y]!=2) && (walls[a.self.x-1][a.self.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.self.x=a.self.x-2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.y<M-1 && (a.opp.y==(a.self.y+1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x][a.self.y+2]!=1) && (walls[a.self.x+1][a.self.y+2]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y+2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.y>2 && (a.opp.y==(a.self.y-1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x][a.self.y-1]!=1) && (walls[a.self.x+1][a.self.y-1]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.self.y=a.self.y-2;
+    //     child = minVal(b,alpha,beta,depth+1);
+    //     alpha = max(alpha,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     maxchild=max(maxchild,child);
+    // }
+    // if(a.self.x<N && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && ((walls[a.self.x+2][a.self.y]!=2) || (walls[a.self.x+2][a.self.y+1]!=2))){
+    //     if( (a.self.y<M) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x+2][a.self.y+1]!=1)){
+    //         gamestate b = gamestate(a);
+    //         b.self.x=a.self.x+1;
+    //         b.self.y=a.self.y+1;
+    //         child = minVal(b,alpha,beta,depth+1);
+    //         alpha = max(alpha,child);
+    //         if(alpha>=beta){
+    //             return child;
+    //         }
+    //         maxchild=max(maxchild,child);
+    //     }
+    //     if( a.self.y>1 && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x+2][a.self.y]!=1)){
+    //         gamestate b = gamestate(a);
+    //         b.self.x=a.self.x+1;
+    //         b.self.y=a.self.y-1;            
+    //         child = minVal(b,alpha,beta,depth+1);
+    //         alpha = max(alpha,child);
+    //         if(alpha>=beta){
+    //             return child;
+    //         }
+    //         maxchild=max(maxchild,child);
+    //     }
+    // }
+    std::vector<pos> ans = neighbour(a.self,a.opp);
+    for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
         gamestate b = gamestate(a);
-        b.self.x=a.self.x+1;
+        b.self.x=it->x;
+        b.self.y=it->y;
         child = minVal(b,alpha,beta,depth+1);
         alpha = max(alpha,child);
-        maxchild=max(maxchild,child);
         if(alpha>=beta){
             return child;
         }
-    }
-    if(a.self.x>1 && (a.opp.x!=(a.self.x-1) || a.opp.y!=a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x-1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.y<M && (a.opp.y!=(a.self.y+1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y+1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.y>1 && (a.opp.y!=(a.self.y-1) || a.opp.x!=a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y-1;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.x<N-1 && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && (walls[a.self.x+2][a.self.y]!=2) && (walls[a.self.x+2][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x+2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.x>2 && (a.opp.x==(a.self.x-1) && a.opp.y==a.self.y) && (walls[a.self.x][a.self.y]!=2) && (walls[a.self.x][a.self.y+1]!=2) && (walls[a.self.x-1][a.self.y]!=2) && (walls[a.self.x-1][a.self.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.self.x=a.self.x-2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.y<M-1 && (a.opp.y==(a.self.y+1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y+1]!=1) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x][a.self.y+2]!=1) && (walls[a.self.x+1][a.self.y+2]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y+2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.y>2 && (a.opp.y==(a.self.y-1) && a.opp.x==a.self.x) && (walls[a.self.x][a.self.y]!=1) && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x][a.self.y-1]!=1) && (walls[a.self.x+1][a.self.y-1]!=1)){
-        gamestate b = gamestate(a);
-        b.self.y=a.self.y-2;
-        child = minVal(b,alpha,beta,depth+1);
-        alpha = max(alpha,child);
-        if(alpha>=beta){
-            return child;
-        }
-        maxchild=max(maxchild,child);
-    }
-    if(a.self.x<N && (a.opp.x==(a.self.x+1) && a.opp.y==a.self.y) && (walls[a.self.x+1][a.self.y]!=2) && (walls[a.self.x+1][a.self.y+1]!=2) && ((walls[a.self.x+2][a.self.y]!=2) || (walls[a.self.x+2][a.self.y+1]!=2))){
-        if( (a.self.y<M) && (walls[a.self.x+1][a.self.y+1]!=1) && (walls[a.self.x+2][a.self.y+1]!=1)){
-            gamestate b = gamestate(a);
-            b.self.x=a.self.x+1;
-            b.self.y=a.self.y+1;
-            child = minVal(b,alpha,beta,depth+1);
-            alpha = max(alpha,child);
-            if(alpha>=beta){
-                return child;
-            }
-            maxchild=max(maxchild,child);
-        }
-        if( a.self.y>1 && (walls[a.self.x+1][a.self.y]!=1) && (walls[a.self.x+2][a.self.y]!=1)){
-            gamestate b = gamestate(a);
-            b.self.x=a.self.x+1;
-            b.self.y=a.self.y-1;            
-            child = minVal(b,alpha,beta,depth+1);
-            alpha = max(alpha,child);
-            if(alpha>=beta){
-                return child;
-            }
-            maxchild=max(maxchild,child);
+        if(maxchild<child){
+            maxchild=child;
+            // temp=b;
         }
     }
+
+
+
     //jump condition
     //wall block jump
     //add wall //can reduce the depth for the case of walls
@@ -545,15 +613,58 @@ int minVal(gamestate a,int alpha, int beta,int depth){
     if(depth>=gdepth){
         int ut=utility(a);
         if(ut==INT_MAX){
-                return INT_MIN;
+            return INT_MIN;
         }
         return ut;
     }
     int child;
     int minchild=INT_MAX;
-    if(a.opp.x<N && ((a.self.x!=(a.opp.x+1)) || (a.self.y!=a.opp.y)) && (walls[a.opp.x+1][a.opp.y]!=2) && (walls[a.opp.x+1][a.opp.y+1]!=2)){
+    // if(a.opp.x<N && ((a.self.x!=(a.opp.x+1)) || (a.self.y!=a.opp.y)) && (walls[a.opp.x+1][a.opp.y]!=2) && (walls[a.opp.x+1][a.opp.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.opp.x=a.opp.x+1;
+    //     child = maxVal(b,alpha,beta,depth+1);
+    //     beta = min(beta,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     minchild = min(minchild,child);
+    // }
+    // if(a.opp.x>1 && (a.self.x!=(a.opp.x-1) || a.self.y!=a.opp.y) && (walls[a.opp.x][a.opp.y]!=2) && (walls[a.opp.x][a.opp.y+1]!=2)){
+    //     gamestate b = gamestate(a);
+    //     b.opp.x=a.opp.x-1;
+    //     child = maxVal(b,alpha,beta,depth+1);
+    //     beta = min(beta,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     minchild = min(minchild,child);
+    // }
+    // if(a.opp.y<M && (a.self.y!=(a.opp.y+1) || a.self.x!=a.opp.x) && (walls[a.opp.x][a.opp.y+1]!=1) && (walls[a.opp.x+1][a.opp.y+1]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.opp.y=a.opp.y+1;
+    //     child = maxVal(b,alpha,beta,depth+1);
+    //     beta = min(beta,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     minchild = min(minchild,child);
+    // }
+    // if(a.opp.y>1 && (a.self.y!=(a.opp.y-1) || a.self.x!=a.opp.x) && (walls[a.opp.x][a.opp.y]!=1) && (walls[a.opp.x+1][a.opp.y]!=1)){
+    //     gamestate b = gamestate(a);
+    //     b.opp.y=a.opp.y-1;
+    //     child = maxVal(b,alpha,beta,depth+1);
+    //     beta = min(beta,child);
+    //     if(alpha>=beta){
+    //         return child;
+    //     }
+    //     minchild = min(minchild,child);
+    // }
+
+    std::vector<pos> ans = neighbour(a.self,a.opp);
+    for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
         gamestate b = gamestate(a);
-        b.opp.x=a.opp.x+1;
+        b.self.x=it->x;
+        b.self.y=it->y;
         child = maxVal(b,alpha,beta,depth+1);
         beta = min(beta,child);
         if(alpha>=beta){
@@ -561,36 +672,8 @@ int minVal(gamestate a,int alpha, int beta,int depth){
         }
         minchild = min(minchild,child);
     }
-    if(a.opp.x>1 && (a.self.x!=(a.opp.x-1) || a.self.y!=a.opp.y) && (walls[a.opp.x][a.opp.y]!=2) && (walls[a.opp.x][a.opp.y+1]!=2)){
-        gamestate b = gamestate(a);
-        b.opp.x=a.opp.x-1;
-        child = maxVal(b,alpha,beta,depth+1);
-        beta = min(beta,child);
-        if(alpha>=beta){
-            return child;
-        }
-        minchild = min(minchild,child);
-    }
-    if(a.opp.y<M && (a.self.y!=(a.opp.y+1) || a.self.x!=a.opp.x) && (walls[a.opp.x][a.opp.y+1]!=1) && (walls[a.opp.x+1][a.opp.y+1]!=1)){
-        gamestate b = gamestate(a);
-        b.opp.y=a.opp.y+1;
-        child = maxVal(b,alpha,beta,depth+1);
-        beta = min(beta,child);
-        if(alpha>=beta){
-            return child;
-        }
-        minchild = min(minchild,child);
-    }
-    if(a.opp.y>1 && (a.self.y!=(a.opp.y-1) || a.self.x!=a.opp.x) && (walls[a.opp.x][a.opp.y]!=1) && (walls[a.opp.x+1][a.opp.y]!=1)){
-        gamestate b = gamestate(a);
-        b.opp.y=a.opp.y-1;
-        child = maxVal(b,alpha,beta,depth+1);
-        beta = min(beta,child);
-        if(alpha>=beta){
-            return child;
-        }
-        minchild = min(minchild,child);
-    }
+
+
     //jump condition
     //wall block jump
     //add wall
@@ -626,6 +709,7 @@ int minVal(gamestate a,int alpha, int beta,int depth){
     if(minchild==INT_MAX){
         return INT_MIN;
     }
+    cout<<"N"<<endl;
     return minchild;
 }
 
@@ -636,23 +720,23 @@ void globalsearchinit(){
         for(int j=1;j<= M;j++){
             int first = (i-1)*M+j;         
             if(j+1<=M){
-                        adjMatrix[first][(i-1)*M+j+1]=1;
-                        adjMatrix[(i-1)*M+j+1][first]=1;                       
-                }
-                if(i-1>0){
-                        adjMatrix[first][(i-2)*M+j]=1;
-                        adjMatrix[(i-2)*M+j][first]=1;
-                }
-                if(i+1 <=N){
-                         adjMatrix[first][(i)*M+j]=1;
-                         adjMatrix[(i)*M+j][first]=1;
-                }
-                if(j-1>0){
-                         adjMatrix[first][(i-1)*M+j-1]=1;
-                         adjMatrix[(i-1)*M+j-1][first]=1;
-                }
+                adjMatrix[first][(i-1)*M+j+1]=1;
+                adjMatrix[(i-1)*M+j+1][first]=1;                       
+            }
+            if(i-1>0){
+                adjMatrix[first][(i-2)*M+j]=1;
+                adjMatrix[(i-2)*M+j][first]=1;
+            }
+            if(i+1 <=N){
+                adjMatrix[first][(i)*M+j]=1;
+                adjMatrix[(i)*M+j][first]=1;
+            }
+            if(j-1>0){
+                adjMatrix[first][(i-1)*M+j-1]=1;
+                adjMatrix[(i-1)*M+j-1][first]=1;
             }
         }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -710,6 +794,7 @@ int main(int argc, char *argv[])
     int d=3;
     char s[100];
     int x=1;
+    move tobe;
     current.wallself=10;
     current.wallopp=10;
     walls = (int **)malloc(sizeof(int *)*(N+2));
@@ -718,9 +803,9 @@ int main(int argc, char *argv[])
         walls[i]=(int *)malloc(sizeof(int)*(M+2));
     }
 
-    cerr<<"H"<<endl;
+    // cerr<<"H"<<endl;
     globalsearchinit();
-    cerr<<"I"<<endl;
+    // cerr<<"I"<<endl;
     if(player == 1)
     {
         current.opp = pos(N,(M+1)/2);
@@ -756,16 +841,6 @@ int main(int argc, char *argv[])
         recvBuff[n] = 0;
         sscanf(recvBuff, "%d %d %d %d", &om,&oro,&oc,&d);
         cout << om<<" "<<oro<<" "<<oc << " "<<d<<endl;
-        if(d==1)
-        {
-            cout<<"You win!! Yayee!! :D ";
-            break;
-        }
-        else if(d==2)
-        {
-            cout<<"Loser :P ";
-            break;
-        }
         if(om==0){
             current.opp = pos(oro,oc);
             // cout<<"H1"<<endl;
@@ -780,11 +855,24 @@ int main(int argc, char *argv[])
             current.wallopp--;
             // cout<<"H3"<<endl;
         }
-        maxValO(current,INT_MIN,INT_MAX,0);
-
+        if(d==1)
+        {
+            cout<<"You win!! Yayee!! :D ";
+            break;
+        }
+        else if(d==2)
+        {
+            cout<<"Loser :P ";
+            break;
+        }
+        tobe = maxValO(current,INT_MIN,INT_MAX,0);
             memset(sendBuff, '0', sizeof(sendBuff)); 
             string temp;
-            cin>>m>>r>>c;
+            m = tobe.mov;
+            r = tobe.posit.x;
+            c = tobe.posit.y;
+            cout<< m<<" " <<r<< " "<<c<<"Move made";
+            // cin>>m>>r>>c;
             snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
             write(sockfd, sendBuff, strlen(sendBuff));
 
@@ -793,16 +881,6 @@ int main(int argc, char *argv[])
             recvBuff[n] = 0;
             sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
             cout<<TL<<" "<<d<<endl;
-            if(d==1)
-            {
-                cout<<"You win!! Yayee!! :D ";
-                break;
-            }
-            else if(d==2)
-            {
-                cout<<"Loser :P ";
-                break;
-            }
             if(m==0){
                 cout<<"h1"<<endl;
                 current.self = pos(r,c);
@@ -816,6 +894,16 @@ int main(int argc, char *argv[])
                 cout<<"h3"<<endl;
                 current.wallself--;
                 walls[r][c] = 1;
+            }
+            if(d==1)
+            {
+                cout<<"You win!! Yayee!! :D ";
+                break;
+            }
+            else if(d==2)
+            {
+                cout<<"Loser :P ";
+                break;
             }
             // maxVal(current,INT_MIN,INT_MAX,0);
             // printgs(current);
