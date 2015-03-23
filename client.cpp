@@ -32,12 +32,6 @@ struct move{
     pos posit;
     move(){};
     move(int a, pos b) : mov(a), posit(b){};
-    // bool operator<( const pos & d ) const {
-    //     if(x==d.x){
-    //         return y<d.y;
-    //     }
-    //     return  x< d.x;
-    // }
 };
 
 struct gamestate{
@@ -95,17 +89,70 @@ void search_init(){
     }
 }
 
-int bfs(int start,int self){
+std::vector<pos> neighbour(pos a, pos b){
+    std::vector<pos> ans;
+    if(gameresult!=3){
+        if(a.x<N && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
+            ans.push_back(pos(a.x+1,a.y));
+        }
+        if(a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
+            ans.push_back(pos(a.x-1,a.y));
+        }
+        if(a.y<M && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
+            ans.push_back(pos(a.x,a.y+1));
+        }
+        if(a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
+            ans.push_back(pos(a.x,a.y-1));
+        }
+    }
+    else{
+        if(a.x<N && (b.x!=(a.x+1) || b.y!=a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
+            ans.push_back(pos(a.x+1,a.y));
+        }
+        if(a.x>1 && (b.x!=(a.x-1) || b.y!=a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
+            ans.push_back(pos(a.x-1,a.y));
+        }
+        if(a.y<M && (b.y!=(a.y+1) || b.x!=a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
+            ans.push_back(pos(a.x,a.y+1));
+        }
+        if(a.y>1 && (b.y!=(a.y-1) || b.x!=a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
+            ans.push_back(pos(a.x,a.y-1));
+        }
+        if(a.x<N-1 && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+2][a.y]!=2) && (walls[a.x+2][a.y+1]!=2)){
+            ans.push_back(pos(a.x+2,a.y));
+        }
+        if(a.x>2 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && (walls[a.x-1][a.y]!=2) && (walls[a.x-1][a.y+1]!=2)){
+            ans.push_back(pos(a.x-2,a.y));
+        }
+        if(a.y<M-1 && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x][a.y+2]!=1) && (walls[a.x+1][a.y+2]!=1)){
+            ans.push_back(pos(a.x,a.y+2));
+        }
+        if(a.y>2 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && (walls[a.x][a.y-1]!=1) && (walls[a.x+1][a.y-1]!=1)){
+            ans.push_back(pos(a.x,a.y-2));
+        }
+        if(a.x<N && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && ((walls[a.x+2][a.y]==2) || (walls[a.x+2][a.y+1]==2))){
+            if( (a.y<M) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x+2][a.y+1]!=1)){
+                ans.push_back(pos(a.x+1,a.y+1));
+            }
+            if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
+                ans.push_back(pos(a.x+1,a.y-1));
+            }
+        }
+    }
+    return ans;
+}
+
+
+
+int bfs(int start,int opp,int self){
     list<int> queue;
-    // bool *visited = new bool[M*N+1];
     memset(visited,false,sizeof(bool)*(M*N+1));
-    // int *parent = new int[M*N+1];
-    // memset(visited,-1,sizeof(bool)*(M*N+1));
     visited[start] = true;
     queue.push_back(start);
     queue.push_back(-1);
     int level=0;
     int count_debug=0;
+    int i=0;
     while(!queue.empty()){
         count_debug++;
         int root = queue.front();
@@ -123,12 +170,13 @@ int bfs(int start,int self){
                 // cout<<"Dfs"<<count_debug;
                 return level;
         }
-        for(int i=1;i<=M*N;i++){
-            if(tempadjMatrix[root][i]!=0){
-                if(!visited[i]){
-                    visited[i]=true;
-                    queue.push_back(i);
-                }
+        std::vector<pos> ans = neighbour(pos(((root-1)/M) +1,(root-1)%M +1),pos(((opp-1)/M) +1,(opp-1)%M +1));
+        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+            i = (it->x-1)*M+it->y;
+            // cout<<"i " <<i<<endl;
+            if(!visited[i]){
+                visited[i]=true;
+                queue.push_back(i);
             }
         }
     }
@@ -136,42 +184,6 @@ int bfs(int start,int self){
     return INT_MAX;
 }
 
-std::vector<pos> neighbour(pos a, pos b){
-    std::vector<pos> ans;
-    if(a.x<N && (b.x!=(a.x+1) || b.y!=a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
-        ans.push_back(pos(a.x+1,a.y));
-    }
-    if(a.x>1 && (b.x!=(a.x-1) || b.y!=a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
-        ans.push_back(pos(a.x-1,a.y));
-    }
-    if(a.y<M && (b.y!=(a.y+1) || b.x!=a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
-        ans.push_back(pos(a.x,a.y+1));
-    }
-    if(a.y>1 && (b.y!=(a.y-1) || b.x!=a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
-        ans.push_back(pos(a.x,a.y-1));
-    }
-    if(a.x<N-1 && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+2][a.y]!=2) && (walls[a.x+2][a.y+1]!=2)){
-        ans.push_back(pos(a.x+2,a.y));
-    }
-    if(a.x>2 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && (walls[a.x-1][a.y]!=2) && (walls[a.x-1][a.y+1]!=2)){
-        ans.push_back(pos(a.x-2,a.y));
-    }
-    if(a.y<M-1 && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x][a.y+2]!=1) && (walls[a.x+1][a.y+2]!=1)){
-        ans.push_back(pos(a.x,a.y+2));
-    }
-    if(a.y>2 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && (walls[a.x][a.y-1]!=1) && (walls[a.x+1][a.y-1]!=1)){
-        ans.push_back(pos(a.x,a.y-2));
-    }
-    if(a.x<N && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && ((walls[a.x+2][a.y]!=2) || (walls[a.x+2][a.y+1]!=2))){
-        if( (a.y<M) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x+2][a.y+1]!=1)){
-            ans.push_back(pos(a.x+1,a.y+1));
-        }
-        if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
-            ans.push_back(pos(a.x+1,a.y-1));
-        }
-    }
-    return ans;
-}
 
 void printgs(gamestate a){
     cout<<"Self "<<a.self.x<<" "<<a.self.y<<endl;
@@ -188,16 +200,21 @@ void printgs(gamestate a){
 
 int utility(gamestate a){
     search_init();
+    // printgs(a);
     // global_min = INT_MAX;
-    global_min = bfs((a.self.x-1)*M+ a.self.y,1);
+    // cout<<"bgmin "<<(a.self.x-1)*M+ a.self.y<<" "<<(a.opp.x-1)*M+ a.opp.y<<endl;
+    global_min = bfs((a.self.x-1)*M+ a.self.y,(a.opp.x-1)*M+ a.opp.y,1);
     // search(explored,0,a.self,1);
+    // printgs(a);
+    cout<<"gmin "<<global_min<<endl;
     if(global_min==INT_MAX){
         return global_min;
     }
     int minpathself = global_min;
     global_min = INT_MAX;
-    global_min = bfs((a.opp.x-1)*M+ a.opp.y,0);
+    global_min = bfs((a.opp.x-1)*M+ a.opp.y,(a.self.x-1)*M+ a.self.y,0);
     // search(explored,0,a.opp,0);
+    cout<<"gmin2 "<<global_min<<endl;
     if(global_min==INT_MAX){
         return global_min;
     }
@@ -367,6 +384,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
         b.self.x=it->x;
         b.self.y=it->y;
         child = minVal(b,alpha,beta,depth+1);
+        cout<<"child " <<child<<endl;
         alpha = max(alpha,child);
         if(alpha>=beta){
             return move(0,b.self);
@@ -660,11 +678,11 @@ int minVal(gamestate a,int alpha, int beta,int depth){
     //     minchild = min(minchild,child);
     // }
 
-    std::vector<pos> ans = neighbour(a.self,a.opp);
+    std::vector<pos> ans = neighbour(a.opp,a.self);
     for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
         gamestate b = gamestate(a);
-        b.self.x=it->x;
-        b.self.y=it->y;
+        b.opp.x=it->x;
+        b.opp.y=it->y;
         child = maxVal(b,alpha,beta,depth+1);
         beta = min(beta,child);
         if(alpha>=beta){
@@ -857,11 +875,13 @@ int main(int argc, char *argv[])
         }
         if(d==1)
         {
+            gameresult=1;
             cout<<"You win!! Yayee!! :D ";
             break;
         }
         else if(d==2)
         {
+            gameresult=2;
             cout<<"Loser :P ";
             break;
         }
@@ -897,11 +917,13 @@ int main(int argc, char *argv[])
             }
             if(d==1)
             {
+                gameresult=1;
                 cout<<"You win!! Yayee!! :D ";
                 break;
             }
             else if(d==2)
             {
+                gameresult=2;
                 cout<<"Loser :P ";
                 break;
             }
