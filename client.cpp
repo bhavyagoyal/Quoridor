@@ -70,22 +70,22 @@ bool inGoal(pos p, int self){
     return ((player==1)?(self):(!self))?(p.x == N):(p.x == 1);
 }
 
-std::vector<pos> neighbour2(pos a, pos b){
-    std::vector<pos> ans;
-        if(a.x<N && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
-            ans.push_back(pos(a.x+1,a.y));
-        }
-        if(a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
-            ans.push_back(pos(a.x-1,a.y));
-        }
-        if(a.y<M && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
-            ans.push_back(pos(a.x,a.y+1));
-        }
-        if(a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
-            ans.push_back(pos(a.x,a.y-1));
-        }
-    return ans;
-}
+// std::vector<pos> neighbour2(pos a, pos b){
+//     std::vector<pos> ans;
+//         if(a.x<N && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
+//             ans.push_back(pos(a.x+1,a.y));
+//         }
+//         if(a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
+//             ans.push_back(pos(a.x-1,a.y));
+//         }
+//         if(a.y<M && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
+//             ans.push_back(pos(a.x,a.y+1));
+//         }
+//         if(a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
+//             ans.push_back(pos(a.x,a.y-1));
+//         }
+//     return ans;
+// }
 
 
 std::vector<pos> neighbour(pos a, pos b){
@@ -206,10 +206,8 @@ int bfs(int start,int opp,int self){
     queue.push_back(start);
     queue.push_back(-1);
     int level=0;
-    // int count_debug=0;
     int i=0;
     while(!queue.empty()){
-        // count_debug++;
         int root = queue.front();
         queue.pop_front();
         if(root==-1){
@@ -225,7 +223,7 @@ int bfs(int start,int opp,int self){
                 // cout<<"Dfs"<<count_debug;
                 return level;
         }
-        std::vector<pos> ans = neighbour2(pos(((root-1)/M) +1,(root-1)%M +1),pos(((opp-1)/M) +1,(opp-1)%M +1));
+        std::vector<pos> ans = neighbour(pos(((root-1)/M) +1,(root-1)%M +1),pos(((opp-1)/M) +1,(opp-1)%M +1));
         for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
             i = (it->x-1)*M+it->y;
             // cout<<"i " <<i<<endl;
@@ -235,7 +233,7 @@ int bfs(int start,int opp,int self){
             }
         }
     }
-    cout<<"Dfs"<<endl;
+    // cout<<"Dfs"<<endl;
     return INT_MAX;
 }
 
@@ -254,17 +252,13 @@ void printgs(gamestate a){
 }
 
 int utility(gamestate a){
-    // printgs(a);
-    // global_min = INT_MAX;
     global_min = bfs((a.self.x-1)*M+ a.self.y,(a.opp.x-1)*M+ a.opp.y,1);
-    // printgs(a);
     if(global_min==INT_MAX){
         return global_min;
     }
     int minpathself = global_min;
     global_min = INT_MAX;
     global_min = bfs((a.opp.x-1)*M+ a.opp.y,(a.self.x-1)*M+ a.self.y,0);
-    // cout<<"gmin2 "<<global_min<<endl;
     if(global_min==INT_MAX){
         return global_min;
     }
@@ -323,7 +317,6 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
-                        b.wallself--;
                         if(utility(b)!=INT_MAX){
                             child = minVal(b,alpha,beta,depth+1);
                             alpha = max(alpha,child);
@@ -346,7 +339,6 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
-                        b.wallself--;
                         if(utility(b)!=INT_MAX){
                             child = minVal(b,alpha,beta,depth+1);
                             alpha = max(alpha,child);
@@ -372,7 +364,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     }
 
         cout<<"Best wall "<<bestwall<<endl;
-        printgs(temp);
+        // printgs(temp);
         cout<<"wall "<<wallpos.x<<" "<<wallpos.y<<endl;
         cout<<"Dir "<<vert<<endl;
         cout<<"M "<<maxchild<<endl;
@@ -426,7 +418,6 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
-                        b.wallself--;
                         child = minVal(b,alpha,beta,depth+1);
                         alpha = max(alpha,child);
                         walls[i][j]=0;
@@ -438,7 +429,6 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
-                        b.wallself--;
                         child = minVal(b,alpha,beta,depth+1);
                         alpha = max(alpha,child);
                         walls[i][j]=0;
@@ -496,26 +486,34 @@ int minVal(gamestate a,int alpha, int beta,int depth){
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
-                        b.wallself--;
-                        child = maxVal(b,alpha,beta,depth+1);
-                        beta = min(beta,child);
-                        walls[i][j]=0;
-                        if(alpha>=beta){
-                            return child;
+                        if(utility(b)!=INT_MAX){
+                            child = maxVal(b,alpha,beta,depth+1);
+                            beta = min(beta,child);
+                            walls[i][j]=0;
+                            if(alpha>=beta){
+                                return child;
+                            }
+                            minchild = min(minchild,child);
                         }
-                        minchild = min(minchild,child);
+                        else{
+                            walls[i][j]=0;
+                        }
                     }
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
-                        b.wallself--;
-                        child = maxVal(b,alpha,beta,depth+1);
-                        beta = min(beta,child);
-                        walls[i][j]=0;
-                        if(alpha>=beta){
-                            return child;
+                        if(utility(b)!=INT_MAX){
+                            child = maxVal(b,alpha,beta,depth+1);
+                            beta = min(beta,child);
+                            walls[i][j]=0;
+                            if(alpha>=beta){
+                                return child;
+                            }
+                            minchild = min(minchild,child);
                         }
-                        minchild = min(minchild,child);
+                        else{
+                            walls[i][j]=0;                            
+                        }
                     }
                 }
             }        
@@ -667,6 +665,7 @@ int main(int argc, char *argv[])
         if(d==(30+player))
         {
             gameresult=1;
+            cout<<"gameresult updated1"<<endl;
             cout<<"You win!! Yayee!! :D ";
             // break;
         }
@@ -674,6 +673,7 @@ int main(int argc, char *argv[])
         {
             gameresult=2;
             cout<<"Loser :P ";
+            cout<<"gameresult updated"<<endl;
             // break;
         }
         else if(d==1){
@@ -710,7 +710,6 @@ int main(int argc, char *argv[])
             if(m==0){
                 // cout<<"h1"<<endl;
                 if(r==0 && c==0){
-
                 }
                 else{
                     current.self = pos(r,c);
@@ -719,22 +718,22 @@ int main(int argc, char *argv[])
             else if(m==1){
                 walls[r][c] = 2;
                 current.wallself--;
-                // cout<<"h2"<<endl;
             }
             else{
-                // cout<<"h3"<<endl;
                 current.wallself--;
                 walls[r][c] = 1;
             }
             if(d==(30+player))
             {
                 gameresult=1;
+                cout<<"gameresult updated1"<<endl;
                 cout<<"You win!! Yayee!! :D ";
                 // break;
             }
             else if(d==(33-player))
             {
                 gameresult=2;
+                cout<<"gameresult updated"<<endl;
                 cout<<"Loser :P ";
                 // break;
             }
@@ -749,6 +748,7 @@ int main(int argc, char *argv[])
             // maxVal(current,INT_MIN,INT_MAX,0);
             // printgs(current);
             // sleep(1);
+            cout<<"Depth"<<gdepth<<endl;
     }
     cout<<endl<<"The End"<<endl;
     return 0;
