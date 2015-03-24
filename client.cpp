@@ -57,7 +57,7 @@ gamestate current;
 int **walls;
 int global_min = INT_MAX;
 bool *visited;
-int gdepth=3;
+int gdepth=4;
 int gameresult=3;
 std::vector<int> ii;
 std::vector<int> ij;
@@ -701,6 +701,9 @@ int main(int argc, char *argv[])
             recvBuff[n] = 0;
             sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
             cout<<TL<<" "<<d<<endl;
+            if(10<TL<=20){
+                gdepth=3;
+            }
             if(2<TL<=10){
                 gdepth=2;
             }
@@ -748,7 +751,7 @@ int main(int argc, char *argv[])
             // maxVal(current,INT_MIN,INT_MAX,0);
             // printgs(current);
             // sleep(1);
-            cout<<"Depth"<<gdepth<<endl;
+            cout<<"Depth"<<gdepth<<" "<<current.wallself<<" "<<current.wallopp<<endl;
     }
     cout<<endl<<"The End"<<endl;
     return 0;
