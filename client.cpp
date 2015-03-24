@@ -57,7 +57,7 @@ gamestate current;
 int **walls;
 int global_min = INT_MAX;
 bool *visited;
-int gdepth=4;
+int gdepth=3;
 int gameresult=3;
 std::vector<int> ii;
 std::vector<int> ij;
@@ -263,7 +263,7 @@ int utility(gamestate a){
         return global_min;
     }
     // cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
-    return (global_min-minpathself);//+2*(a.wallself-a.wallopp);
+    return 2*(global_min-minpathself)+(a.wallself-a.wallopp);
 }
 
 
@@ -284,7 +284,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
             b.self.x=it->x;
             b.self.y=it->y;
             child = minVal(b,alpha,beta,depth+1);
-            cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<endl;
+            //cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<endl;
             alpha = max(alpha,child);
             if(alpha>=beta){
                 return move(0,b.self);
@@ -313,10 +313,11 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
             //     for(int j=2;j<=M;j++){
                     i=*it;
                     j=*it2;
-                    cout<< i<< " "<<j<<endl;
+                    //cout<< i<< " "<<j<<endl;
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
+                        b.wallself--;
                         if(utility(b)!=INT_MAX){
                             child = minVal(b,alpha,beta,depth+1);
                             alpha = max(alpha,child);
@@ -339,6 +340,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
+                        b.wallself--;
                         if(utility(b)!=INT_MAX){
                             child = minVal(b,alpha,beta,depth+1);
                             alpha = max(alpha,child);
@@ -418,24 +420,36 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
-                        child = minVal(b,alpha,beta,depth+1);
-                        alpha = max(alpha,child);
-                        walls[i][j]=0;
-                        if(alpha>=beta){
-                            return child;
+                        b.wallself--;
+                        if(utility(b)!=INT_MAX){
+                            child = minVal(b,alpha,beta,depth+1);
+                            alpha = max(alpha,child);
+                            walls[i][j]=0;
+                            if(alpha>=beta){
+                                return child;
+                            }
+                            maxchild=max(maxchild,child);
                         }
-                        maxchild=max(maxchild,child);
+                        else{
+                            walls[i][j]=0;
+                        }                            
                     }
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
-                        child = minVal(b,alpha,beta,depth+1);
-                        alpha = max(alpha,child);
-                        walls[i][j]=0;
-                        if(alpha>=beta){
-                            return child;
+                        b.wallself--;
+                        if(utility(b)!=INT_MAX){
+                            child = minVal(b,alpha,beta,depth+1);
+                            alpha = max(alpha,child);
+                            walls[i][j]=0;
+                            if(alpha>=beta){
+                                return child;
+                            }
+                            maxchild=max(maxchild,child);
                         }
-                        maxchild=max(maxchild,child);
+                        else{
+                            walls[i][j]=0;
+                        }                            
                     }
                 }
             }
@@ -701,10 +715,7 @@ int main(int argc, char *argv[])
             recvBuff[n] = 0;
             sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
             cout<<TL<<" "<<d<<endl;
-            if(10<TL<=20){
-                gdepth=3;
-            }
-            if(2<TL<=10){
+            if(2<TL && TL<=10){
                 gdepth=2;
             }
             if(TL<=2){
