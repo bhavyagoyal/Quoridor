@@ -57,7 +57,7 @@ gamestate current;
 int **walls;
 int global_min = INT_MAX;
 bool *visited;
-int gdepth=3;
+int gdepth=2;
 int gameresult=3;
 std::vector<int> ii;
 std::vector<int> ij;
@@ -65,6 +65,7 @@ std::vector<int> ii2;
 std::vector<int> ij2;
 std::vector<int> ii3;
 std::vector<int> ij3;
+std::list<pos> lastmoves;
 
 bool inGoal(pos p, int self){
     return ((player==1)?(self):(!self))?(p.x == N):(p.x == 1);
@@ -263,7 +264,7 @@ int utility(gamestate a){
         return global_min;
     }
     // cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
-    return 2*(global_min-minpathself)+(a.wallself-a.wallopp);
+    return 4*(global_min-minpathself)+(a.wallself-a.wallopp);
 }
 
 
@@ -280,6 +281,16 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
         std::vector<pos> ans = neighbour(a.self,a.opp);
         random_shuffle(ans.begin(),ans.end());
         for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+            int count=0;
+            for (std::list<pos>::iterator it2=lastmoves.begin(); it2!=lastmoves.end(); ++it2){
+                if((it2->x == it->x) && it2->y==it->y){
+                    count++;
+                }
+            }
+            if(count>=7){
+                cout<<"Toggling case found"<<endl;
+                continue;
+            }
             gamestate b = gamestate(a);
             b.self.x=it->x;
             b.self.y=it->y;
@@ -500,6 +511,7 @@ int minVal(gamestate a,int alpha, int beta,int depth){
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
+                        b.wallopp--;
                         if(utility(b)!=INT_MAX){
                             child = maxVal(b,alpha,beta,depth+1);
                             beta = min(beta,child);
@@ -516,6 +528,7 @@ int minVal(gamestate a,int alpha, int beta,int depth){
                     if(walls[i][j]==0 && walls[i][j-1]!=2 && walls[i][j+1]!=2){
                         walls[i][j]=2;
                         gamestate b = gamestate(a);
+                        b.wallopp--;
                         if(utility(b)!=INT_MAX){
                             child = maxVal(b,alpha,beta,depth+1);
                             beta = min(beta,child);
@@ -597,7 +610,7 @@ int main(int argc, char *argv[])
     char s[100];
     int x=1;
     move tobe;
-    current.wallself=K;
+    current.wallself=K-1;
     current.wallopp=K;
     walls = (int **)malloc(sizeof(int *)*(N+2));
     for(int i=0;i<N+2;i++)
@@ -628,7 +641,7 @@ int main(int argc, char *argv[])
         current.self = pos(1,(M+1)/2);
         memset(sendBuff, '0', sizeof(sendBuff)); 
         string temp;
-        m=0; r=2;c=5;
+        m=0; r=2;c=(M+1)/2;
         current.self = pos(r,c);
         snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
         write(sockfd, sendBuff, strlen(sendBuff));
@@ -691,7 +704,7 @@ int main(int argc, char *argv[])
             // break;
         }
         else if(d==1){
-            gameresult=2;
+            gameresult=1;
             break;
         }
         else if(d==2){
@@ -700,6 +713,12 @@ int main(int argc, char *argv[])
         }
 
         tobe = maxValO(current,INT_MIN,INT_MAX,0);
+        if(tobe.mov==0){
+            lastmoves.push_back(pos(tobe.posit.x,tobe.posit.y));
+        }
+            if(lastmoves.size()>15){
+                lastmoves.pop_front();
+            }
             memset(sendBuff, '0', sizeof(sendBuff)); 
             string temp;
             m = tobe.mov;
@@ -752,7 +771,7 @@ int main(int argc, char *argv[])
                 // break;
             }
             else if(d==1){
-                gameresult=2;
+                gameresult=1;
                 break;
             }
             else if(d==2){
