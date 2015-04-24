@@ -263,8 +263,12 @@ int utility(gamestate a){
     if(global_min==INT_MAX){
         return global_min;
     }
-    // cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
-    return 4*(global_min-minpathself)+(a.wallself-a.wallopp);
+    int ans=2*(global_min-minpathself)+(a.wallself-a.wallopp);
+    // if(global_min==0){
+    //     ans-=2;
+    // }
+    cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
+    return ans;
 }
 
 
@@ -287,15 +291,16 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                     count++;
                 }
             }
-            if(count>=7){
+            if(count>=3){
                 cout<<"Toggling case found"<<endl;
+                // lastmoves.clear();
                 continue;
             }
             gamestate b = gamestate(a);
             b.self.x=it->x;
             b.self.y=it->y;
             child = minVal(b,alpha,beta,depth+1);
-            //cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<endl;
+            cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<" "<<b.opp.x<<" "<<b.opp.y<<endl;
             alpha = max(alpha,child);
             if(alpha>=beta){
                 return move(0,b.self);
@@ -305,6 +310,29 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                 temp=b;
             }
         }        
+    }
+    if(maxchild==INT_MIN){
+        if(gameresult!=1){
+            std::vector<pos> ans = neighbour(a.self,a.opp);
+            random_shuffle(ans.begin(),ans.end());
+            for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+                int count=0;
+                gamestate b = gamestate(a);
+                b.self.x=it->x;
+                b.self.y=it->y;
+                child = minVal(b,alpha,beta,depth+1);
+                // cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<endl;
+                alpha = max(alpha,child);
+                if(alpha>=beta){
+                    return move(0,b.self);
+                }
+                if(maxchild<child){
+                    maxchild=child;
+                    temp=b;
+                }
+            }        
+        }
+
     }
 
     bool bestwall=false;
@@ -676,7 +704,12 @@ int main(int argc, char *argv[])
         sscanf(recvBuff, "%d %d %d %d", &om,&oro,&oc,&d);
         cout << om<<" "<<oro<<" "<<oc << " "<<d<<endl;
         if(om==0){
-            current.opp = pos(oro,oc);
+            if(gameresult==2){
+
+            }
+            else{
+                current.opp = pos(oro,oc);
+            }
             // cout<<"H1"<<endl;
         }
         else if(om==1){
@@ -716,7 +749,7 @@ int main(int argc, char *argv[])
         if(tobe.mov==0){
             lastmoves.push_back(pos(tobe.posit.x,tobe.posit.y));
         }
-            if(lastmoves.size()>15){
+            if(lastmoves.size()>7){
                 lastmoves.pop_front();
             }
             memset(sendBuff, '0', sizeof(sendBuff)); 
