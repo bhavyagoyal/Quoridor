@@ -72,6 +72,9 @@ struct wallposit{
     }
 };
 
+bool wallpositcomp(wallposit a,wallposit b){
+    return  (abs(a.x-current.self.x)+abs(a.y-current.self.y)) < (abs(b.x-current.self.x)+abs(b.y-current.self.y));
+}
 
 std::vector< wallposit > possiblewalls;
 std::vector< wallposit > possiblewalls2;
@@ -99,113 +102,142 @@ bool inGoal(pos p, int self){
 // }
 
 
-std::vector<pos> neighbour(pos a, pos b){
-    std::vector<pos> ans;
+pair< pos*,int> neighbour(pos a, pos b){
+    pos* ans = (pos*)malloc(sizeof(pos)*6);
+    int count=0;
     if(gameresult!=3){
         if(a.x<N && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
-            ans.push_back(pos(a.x+1,a.y));
+            ans[count] = pos(a.x+1,a.y);
+            count++;
         }
         if(a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
-            ans.push_back(pos(a.x-1,a.y));
+            ans[count] = pos(a.x-1,a.y);
+            count++;
         }
         if(a.y<M && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
-            ans.push_back(pos(a.x,a.y+1));
+            ans[count] = pos(a.x,a.y+1);
+            count++;
         }
         if(a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
-            ans.push_back(pos(a.x,a.y-1));
+            ans[count] = pos(a.x,a.y-1);
+            count++;
         }
     }
     else{
         if(a.x<N && (b.x!=(a.x+1) || b.y!=a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2)){
-            ans.push_back(pos(a.x+1,a.y));
+            ans[count] =  pos(a.x+1,a.y);
+            count++;
         }
         if(a.x>1 && (b.x!=(a.x-1) || b.y!=a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
-            ans.push_back(pos(a.x-1,a.y));
+            ans[count] =  pos(a.x-1,a.y);
+            count++;
         }
         if(a.y<M && (b.y!=(a.y+1) || b.x!=a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
-            ans.push_back(pos(a.x,a.y+1));
+            ans[count] =  pos(a.x,a.y+1);
+            count++;
         }
         if(a.y>1 && (b.y!=(a.y-1) || b.x!=a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
-            ans.push_back(pos(a.x,a.y-1));
+            ans[count] =  pos(a.x,a.y-1);
+            count++;
         }
         if(a.x<N-1 && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+2][a.y]!=2) && (walls[a.x+2][a.y+1]!=2)){
-            ans.push_back(pos(a.x+2,a.y));
+            ans[count] =  pos(a.x+2,a.y);
+            count++;
         }
         if(a.x>2 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && (walls[a.x-1][a.y]!=2) && (walls[a.x-1][a.y+1]!=2)){
-            ans.push_back(pos(a.x-2,a.y));
+            ans[count] =  pos(a.x-2,a.y);
+            count++;
         }
         if(a.y<M-1 && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x][a.y+2]!=1) && (walls[a.x+1][a.y+2]!=1)){
-            ans.push_back(pos(a.x,a.y+2));
+            ans[count] = pos(a.x,a.y+2);
+            count++;
         }
         if(a.y>2 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && (walls[a.x][a.y-1]!=1) && (walls[a.x+1][a.y-1]!=1)){
-            ans.push_back(pos(a.x,a.y-2));
+            ans[count] = pos(a.x,a.y-2);
+            count++;
         }
         if(a.x<N && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) && ((walls[a.x+2][a.y]==2) || (walls[a.x+2][a.y+1]==2))){
             if( (a.y<M) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x+2][a.y+1]!=1)){
-                ans.push_back(pos(a.x+1,a.y+1));
+                ans[count] = pos(a.x+1,a.y+1);
+                count++;
             }
             if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
-                ans.push_back(pos(a.x+1,a.y-1));
+                ans[count] = pos(a.x+1,a.y-1);
+                count++;
             }
         }
         if(a.x>1 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2) && ((walls[a.x-1][a.y]==2) || (walls[a.x-1][a.y+1]==2))){
             if( (a.y<M) && (walls[a.x][a.y+1]!=1) && (walls[a.x-1][a.y+1]!=1)){
-                ans.push_back(pos(a.x-1,a.y+1));
+                ans[count] = pos(a.x-1,a.y+1);
+                count++;
             }
             if( a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x-1][a.y]!=1)){
-                ans.push_back(pos(a.x-1,a.y-1));
+                ans[count] = pos(a.x-1,a.y-1);
+                count++;
             }
         }
         if(a.y<M && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1) && ((walls[a.x][a.y+2]==1) || (walls[a.x+1][a.y+2]==1))){
             if( (a.x<N) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+1][a.y+2]!=2)){
-                ans.push_back(pos(a.x+1,a.y+1));
+                ans[count] = pos(a.x+1,a.y+1);
+                count++;
             }
             if( a.x>1 && (walls[a.x][a.y+1]!=2) && (walls[a.x][a.y+2]!=2)){
-                ans.push_back(pos(a.x-1,a.y+1));
+                ans[count] = pos(a.x-1,a.y+1);
+                count++;
             }
         }
         if(a.y>1 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1) && ((walls[a.x][a.y-1]==1) || (walls[a.x+1][a.y-1]==1))){
             if( (a.x<N) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y-1]!=2)){
-                ans.push_back(pos(a.x+1,a.y-1));
+                ans[count] = pos(a.x+1,a.y-1);
+                count++;
             }
             if( a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y-1]!=2)){
-                ans.push_back(pos(a.x-1,a.y-1));
+                ans[count] = pos(a.x-1,a.y-1);
+                count++;
             }
         }
         if(a.x==(N-1) && (b.x==(a.x+1) && b.y==a.y) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y+1]!=2) ){
             if( (a.y<M) && (walls[a.x+1][a.y+1]!=1) && (walls[a.x+2][a.y+1]!=1)){
-                ans.push_back(pos(a.x+1,a.y+1));
+                ans[count] = pos(a.x+1,a.y+1);
+                count++;
             }
             if( a.y>1 && (walls[a.x+1][a.y]!=1) && (walls[a.x+2][a.y]!=1)){
-                ans.push_back(pos(a.x+1,a.y-1));
+                ans[count] = pos(a.x+1,a.y-1);
+                count++;
             }
         }
         if(a.x==2 && (b.x==(a.x-1) && b.y==a.y) && (walls[a.x][a.y]!=2) && (walls[a.x][a.y+1]!=2)){
             if( (a.y<M) && (walls[a.x][a.y+1]!=1) && (walls[a.x-1][a.y+1]!=1)){
-                ans.push_back(pos(a.x-1,a.y+1));
+                ans[count] = pos(a.x-1,a.y+1);
+                count++;
             }
             if( a.y>1 && (walls[a.x][a.y]!=1) && (walls[a.x-1][a.y]!=1)){
-                ans.push_back(pos(a.x-1,a.y-1));
+                ans[count] = pos(a.x-1,a.y-1);
+                count++;
             }
         }
         if(a.y==M-1 && (b.y==(a.y+1) && b.x==a.x) && (walls[a.x][a.y+1]!=1) && (walls[a.x+1][a.y+1]!=1)){
             if( (a.x<N) && (walls[a.x+1][a.y+1]!=2) && (walls[a.x+1][a.y+2]!=2)){
-                ans.push_back(pos(a.x+1,a.y+1));
+                ans[count] = pos(a.x+1,a.y+1);
+                count++;
             }
             if( a.x>1 && (walls[a.x][a.y+1]!=2) && (walls[a.x][a.y+2]!=2)){
-                ans.push_back(pos(a.x-1,a.y+1));
+                ans[count] = pos(a.x-1,a.y+1);
+                count++;
             }
         }
         if(a.y==2 && (b.y==(a.y-1) && b.x==a.x) && (walls[a.x][a.y]!=1) && (walls[a.x+1][a.y]!=1)){
             if( (a.x<N) && (walls[a.x+1][a.y]!=2) && (walls[a.x+1][a.y-1]!=2)){
-                ans.push_back(pos(a.x+1,a.y-1));
+                ans[count] = pos(a.x+1,a.y-1);
+                count++;
             }
             if( a.x>1 && (walls[a.x][a.y]!=2) && (walls[a.x][a.y-1]!=2)){
-                ans.push_back(pos(a.x-1,a.y-1));
+                ans[count] = pos(a.x-1,a.y-1);
+                count++;
             }
         }
     }
-    return ans;
+    return make_pair(ans,count);
 }
 
 
@@ -234,15 +266,17 @@ int bfs(int start,int opp,int self){
                 // cout<<"Dfs"<<count_debug;
                 return level;
         }
-        std::vector<pos> ans = neighbour(pos(((root-1)/M) +1,(root-1)%M +1),pos(((opp-1)/M) +1,(opp-1)%M +1));
-        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
-            i = (it->x-1)*M+it->y;
+        pair<pos*,int> ans = neighbour(pos(((root-1)/M) +1,(root-1)%M +1),pos(((opp-1)/M) +1,(opp-1)%M +1));
+        for(int l = 0; l < ans.second; l++) {
+            i = (ans.first[l].x - 1)*M+ans.first[l].y;
             // cout<<"i " <<i<<endl;
             if(!visited[i]){
                 visited[i]=true;
                 queue.push_back(i);
             }
         }
+        free(ans.first);
+
     }
     // cout<<"Dfs"<<endl;
     return INT_MAX;
@@ -274,9 +308,10 @@ int utility(gamestate a){
         return global_min;
     }
     int ans=2*(global_min-minpathself)+(a.wallself-a.wallopp);
-    // if(global_min==0){
-    //     ans-=2;
-    // }
+    // int ans=4*(global_min - minpathself)+3*(a.wallself-a.wallopp);
+    if(global_min==0){
+        ans-=20;
+    }
     // cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
     return ans;
 }
@@ -292,12 +327,13 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     int maxchild=INT_MIN;
     gamestate temp;
     if(gameresult!=1){
-        std::vector<pos> ans = neighbour(a.self,a.opp);
-        random_shuffle(ans.begin(),ans.end());
-        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+        pair<pos*,int> ans = neighbour(a.self,a.opp);
+        int numb[6] = {0,1,2,3,4,5};
+        random_shuffle(numb, numb+ans.second);        // random_shuffle(ans.begin(),ans.end());
+        for(int l=0;l<ans.second;l++) {
             int count=0;
             for (std::list<pos>::iterator it2=lastmoves.begin(); it2!=lastmoves.end(); ++it2){
-                if((it2->x == it->x) && it2->y==it->y){
+                if((it2->x == ans.first[numb[l]].x) && it2->y==ans.first[numb[l]].y){
                     count++;
                 }
             }
@@ -307,8 +343,8 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                 continue;
             }
             gamestate b = gamestate(a);
-            b.self.x=it->x;
-            b.self.y=it->y;
+            b.self.x=ans.first[numb[l]].x;
+            b.self.y=ans.first[numb[l]].y;
             child = minVal(b,alpha,beta,depth+1);
             cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<" "<<b.opp.x<<" "<<b.opp.y<<endl;
             alpha = max(alpha,child);
@@ -320,16 +356,18 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                 temp=b;
             }
         }        
+        free(ans.first);
     }
     if(maxchild==INT_MIN){
         if(gameresult!=1){
-            std::vector<pos> ans = neighbour(a.self,a.opp);
-            random_shuffle(ans.begin(),ans.end());
-            for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+            pair<pos*,int> ans = neighbour(a.self,a.opp);
+            int numb[6] = {0,1,2,3,4,5};
+            random_shuffle(numb, numb+ans.second);        // random_shuffle(ans.begin(),ans.end());
+            for(int l=0;l<ans.second;l++) {
                 int count=0;
                 gamestate b = gamestate(a);
-                b.self.x=it->x;
-                b.self.y=it->y;
+                b.self.x=ans.first[numb[l]].x;
+                b.self.y=ans.first[numb[l]].y;
                 child = minVal(b,alpha,beta,depth+1);
                 // cout<<"child " <<b.self.x<<" " <<b.self.y<<" " <<child<<endl;
                 alpha = max(alpha,child);
@@ -341,6 +379,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                     temp=b;
                 }
             }        
+            free(ans.first);
         }
 
     }
@@ -353,7 +392,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     // random_shuffle(ii.begin(), ii.end());
     // random_shuffle(ij.begin(), ij.end());
     sort(possiblewalls.begin(), possiblewalls.end());
-    random_shuffle(possiblewalls.begin()+9, possiblewalls.end());
+    random_shuffle(possiblewalls.begin()+7, possiblewalls.end());
     int i;
     int j;
     if(gameresult!=2){
@@ -361,7 +400,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
             for(std::vector< wallposit >::iterator it = possiblewalls.begin(); it != possiblewalls.end(); ++it){
                     i=it->x;
                     j=it->y;
-                    cout<< i<< " "<<j<<endl;
+                    // cout<< i<< " "<<j<<endl;
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
@@ -438,12 +477,13 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
     }
     int child;
     int maxchild=INT_MIN;
-        std::vector<pos> ans = neighbour(a.self,a.opp);
-        random_shuffle(ans.begin(),ans.end());
-        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+        pair<pos*,int> ans = neighbour(a.self,a.opp);
+        int numb[6] = {0,1,2,3,4,5};
+        random_shuffle(numb, numb+ans.second);        // random_shuffle(ans.begin(),ans.end());
+        for(int l=0;l<ans.second;l++) {
             gamestate b = gamestate(a);
-            b.self.x=it->x;
-            b.self.y=it->y;
+            b.self.x=ans.first[numb[l]].x;
+            b.self.y=ans.first[numb[l]].y;
             child = minVal(b,alpha,beta,depth+1);
             alpha = max(alpha,child);
             if(alpha>=beta){
@@ -453,6 +493,7 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
                 maxchild=child;
             }
         }
+        free(ans.first);
 
     // random_shuffle(ii.begin(), ii.end());
     // random_shuffle(ij.begin(), ij.end());
@@ -519,12 +560,13 @@ int minVal(gamestate a,int alpha, int beta,int depth){
     }
     int child;
     int minchild=INT_MAX;
-        std::vector<pos> ans = neighbour(a.opp,a.self);
-        random_shuffle(ans.begin(),ans.end());
-        for(std::vector<pos>::iterator it = ans.begin(); it != ans.end(); ++it) {
+        pair<pos*,int> ans = neighbour(a.opp,a.self);
+        int numb[6] = {0,1,2,3,4,5};
+        random_shuffle(numb, numb+ans.second);        // random_shuffle(ans.begin(),ans.end());
+        for(int l=0;l<ans.second;l++) {
             gamestate b = gamestate(a);
-            b.opp.x=it->x;
-            b.opp.y=it->y;
+            b.opp.x=ans.first[numb[l]].x;
+            b.opp.y=ans.first[numb[l]].y;
             child = maxVal(b,alpha,beta,depth+1);
             beta = min(beta,child);
             if(alpha>=beta){
@@ -532,10 +574,12 @@ int minVal(gamestate a,int alpha, int beta,int depth){
             }
             minchild = min(minchild,child);
         }
+        free(ans.first);
 
     // random_shuffle(ii.begin(), ii.end());
     // random_shuffle(ij.begin(), ij.end());
-    random_shuffle(possiblewalls3.begin(), possiblewalls3.end());
+    sort(possiblewalls3.begin(), possiblewalls3.end(),wallpositcomp);
+    random_shuffle(possiblewalls3.begin()+7, possiblewalls3.end());
     // ran
     int i;
     int j;
@@ -596,12 +640,13 @@ int main(int argc, char *argv[])
     char recvBuff[1024];
     char sendBuff[1025];
     struct sockaddr_in serv_addr; 
-
-    if(argc != 3)
-    {
-        printf("\n Usage: %s <ip of server> <port no> \n",argv[0]);
-        return 1;
-    } 
+    int timelimit = atoi(argv[3]);
+    cout<<"Time limit set by me"<<timelimit<<endl;
+    // if(argc != 3)
+    // {
+    //     printf("\n Usage: %s <ip of server> <port no> \n",argv[0]);
+    //     return 1;
+    // } 
 
     
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -766,10 +811,10 @@ int main(int argc, char *argv[])
         tobe = maxValO(current,INT_MIN,INT_MAX,0);
         if(tobe.mov==0){
             lastmoves.push_back(pos(tobe.posit.x,tobe.posit.y));
-        }
             if(lastmoves.size()>25){
                 lastmoves.pop_front();
             }
+        }
             memset(sendBuff, '0', sizeof(sendBuff)); 
             string temp;
             m = tobe.mov;
@@ -786,10 +831,10 @@ int main(int argc, char *argv[])
             recvBuff[n] = 0;
             sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
             cout<<TL<<" "<<d<<endl;
-            if(nummoves>5){
+            if(nummoves>6){
                 gdepth=3;
             }
-            if(2<TL && TL<=25){
+            if(2<TL && TL<=timelimit){
                 gdepth=2;
             }
             if(TL<=2){
