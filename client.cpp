@@ -27,6 +27,7 @@ struct pos{
     }
 };
 
+
 struct move{
     int mov;//This is opposite of what we have in code //0 for move //2 for wall vertical // 1 for wall horizontal
     pos posit;
@@ -59,13 +60,22 @@ int global_min = INT_MAX;
 bool *visited;
 int gdepth=2;
 int gameresult=3;
-std::vector<int> ii;
-std::vector<int> ij;
-std::vector<int> ii2;
-std::vector<int> ij2;
-std::vector<int> ii3;
-std::vector<int> ij3;
 std::list<pos> lastmoves;
+int nummoves=0;
+struct wallposit{
+    int x;
+    int y;
+    wallposit(){};
+    wallposit(int a, int b) : x(a), y(b){};
+    bool operator<( const wallposit & d ) const {
+        return  (abs(x-current.opp.x)+abs(y-current.opp.y)) < (abs(d.x-current.opp.x)+abs(d.y-current.opp.y));
+    }
+};
+
+
+std::vector< wallposit > possiblewalls;
+std::vector< wallposit > possiblewalls2;
+std::vector< wallposit > possiblewalls3;
 
 bool inGoal(pos p, int self){
     return ((player==1)?(self):(!self))?(p.x == N):(p.x == 1);
@@ -267,7 +277,7 @@ int utility(gamestate a){
     // if(global_min==0){
     //     ans-=2;
     // }
-    cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
+    // cout<<"Utitlity "<<global_min<<" "<<minpathself<<endl;
     return ans;
 }
 
@@ -340,19 +350,18 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
     bool vert;
     //add wall //can reduce the depth for the case of walls
 
-    random_shuffle(ii.begin(), ii.end());
-    random_shuffle(ij.begin(), ij.end());
+    // random_shuffle(ii.begin(), ii.end());
+    // random_shuffle(ij.begin(), ij.end());
+    sort(possiblewalls.begin(), possiblewalls.end());
+    random_shuffle(possiblewalls.begin()+9, possiblewalls.end());
     int i;
     int j;
     if(gameresult!=2){
         if(a.wallself>0){
-            for(std::vector<int>::iterator it = ii.begin(); it != ii.end(); ++it){
-            // for(int i=2;i<=N;i++){
-                for(std::vector<int>::iterator it2 = ij.begin(); it2 != ij.end(); ++it2){
-            //     for(int j=2;j<=M;j++){
-                    i=*it;
-                    j=*it2;
-                    //cout<< i<< " "<<j<<endl;
+            for(std::vector< wallposit >::iterator it = possiblewalls.begin(); it != possiblewalls.end(); ++it){
+                    i=it->x;
+                    j=it->y;
+                    cout<< i<< " "<<j<<endl;
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
@@ -399,7 +408,7 @@ move maxValO(gamestate a,int alpha,int beta,int depth){
                             walls[i][j]=0;
                         }
                     }
-                }
+                // }
             }
         }
     }
@@ -445,16 +454,16 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
             }
         }
 
-    random_shuffle(ii2.begin(), ii2.end());
-    random_shuffle(ij2.begin(), ij2.end());
+    // random_shuffle(ii.begin(), ii.end());
+    // random_shuffle(ij.begin(), ij.end());
+    random_shuffle(possiblewalls2.begin(), possiblewalls2.end());
     int i;
     int j;
     if(gameresult!=2){
         if(a.wallself>0){
-            for(std::vector<int>::iterator it = ii2.begin(); it != ii2.end(); ++it){
-                for(std::vector<int>::iterator it2 = ij2.begin(); it2 != ij2.end(); ++it2){
-                        i=*it;
-                        j=*it2;
+            for(std::vector< wallposit >::iterator it = possiblewalls2.begin(); it != possiblewalls2.end(); ++it){
+                    i=it->x;
+                    j=it->y;
                     // cout<< i<< " "<<j<<endl;
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
@@ -490,7 +499,6 @@ int maxVal(gamestate a,int alpha,int beta,int depth){
                             walls[i][j]=0;
                         }                            
                     }
-                }
             }
         }
     }
@@ -525,17 +533,17 @@ int minVal(gamestate a,int alpha, int beta,int depth){
             minchild = min(minchild,child);
         }
 
-    random_shuffle(ii3.begin(), ii3.end());
-    random_shuffle(ij3.begin(), ij3.end());
-
+    // random_shuffle(ii.begin(), ii.end());
+    // random_shuffle(ij.begin(), ij.end());
+    random_shuffle(possiblewalls3.begin(), possiblewalls3.end());
+    // ran
     int i;
     int j;
     if(gameresult!=1){
         if(a.wallopp>0){
-            for(std::vector<int>::iterator it = ii3.begin(); it != ii3.end(); ++it){
-                for(std::vector<int>::iterator it2 = ij3.begin(); it2 != ij3.end(); ++it2){
-                    i=*it;
-                    j=*it2;
+            for(std::vector< wallposit >::iterator it = possiblewalls3.begin(); it != possiblewalls3.end(); ++it){
+                    i=it->x;
+                    j=it->y;
                     if(walls[i][j]==0 && walls[i-1][j]!=1 && walls[i+1][j]!=1){
                         walls[i][j]=1;
                         gamestate b = gamestate(a);
@@ -570,7 +578,6 @@ int minVal(gamestate a,int alpha, int beta,int depth){
                             walls[i][j]=0;                            
                         }
                     }
-                }
             }        
         }
     }
@@ -646,22 +653,33 @@ int main(int argc, char *argv[])
         walls[i]=(int *)malloc(sizeof(int)*(M+2));
     }
     visited = (bool *)malloc(sizeof(bool)*(N*M+1));
-    ii.resize(N-1);
-    ij.resize(M-1);
-    ii2.resize(N-1);
-    ij2.resize(M-1);
-    ii3.resize(N-1);
-    ij3.resize(M-1);
     for(int i=2;i<=N;i++){
-        ii[i-2]=i;
-        ii2[i-2]=i;
-        ii3[i-2]=i;
+        for(int j=2;j<=M;j++){
+            possiblewalls.push_back( wallposit(i,j) );
+        }
     }
-    for(int i=2;i<=M;i++){
-        ij[i-2]=i;
-        ij2[i-2]=i;
-        ij3[i-2]=i;
+    for(int i=2;i<=N;i++){
+        for(int j=2;j<=M;j++){
+            possiblewalls2.push_back( wallposit(i,j) );
+        }
     }
+    for(int i=2;i<=N;i++){
+        for(int j=2;j<=M;j++){
+            possiblewalls3.push_back( wallposit(i,j) );
+        }
+    }
+
+
+    // for(int i=2;i<=N;i++){
+    //     ii[i-2]=i;
+    //     ii2[i-2]=i;
+    //     ii3[i-2]=i;
+    // }
+    // for(int i=2;i<=M;i++){
+    //     ij[i-2]=i;
+    //     ij2[i-2]=i;
+    //     ij3[i-2]=i;
+    // }
 
     if(player == 1)
     {
@@ -749,7 +767,7 @@ int main(int argc, char *argv[])
         if(tobe.mov==0){
             lastmoves.push_back(pos(tobe.posit.x,tobe.posit.y));
         }
-            if(lastmoves.size()>7){
+            if(lastmoves.size()>25){
                 lastmoves.pop_front();
             }
             memset(sendBuff, '0', sizeof(sendBuff)); 
@@ -759,6 +777,7 @@ int main(int argc, char *argv[])
             c = tobe.posit.y;
             cout<< m<<" " <<r<< " "<<c<<"Move made";
             // cin>>m>>r>>c;
+            nummoves++;
             snprintf(sendBuff, sizeof(sendBuff), "%d %d %d", m, r , c);
             write(sockfd, sendBuff, strlen(sendBuff));
 
@@ -767,7 +786,10 @@ int main(int argc, char *argv[])
             recvBuff[n] = 0;
             sscanf(recvBuff, "%f %d", &TL, &d);//d=3 indicates game continues.. d=2 indicates lost game, d=1 means game won.
             cout<<TL<<" "<<d<<endl;
-            if(2<TL && TL<=10){
+            if(nummoves>5){
+                gdepth=3;
+            }
+            if(2<TL && TL<=25){
                 gdepth=2;
             }
             if(TL<=2){
