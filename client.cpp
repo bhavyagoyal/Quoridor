@@ -641,6 +641,7 @@ int main(int argc, char *argv[])
     char sendBuff[1025];
     struct sockaddr_in serv_addr; 
     int timelimit = atoi(argv[3]);
+    bool down=false;
     cout<<"Time limit set by me"<<timelimit<<endl;
     // if(argc != 3)
     // {
@@ -683,7 +684,8 @@ int main(int argc, char *argv[])
     cout<<"Player "<<player<<endl;
     cout<<"Time "<<time_left<<endl;
     cout<<"Board size "<<N<<"x"<<M<<" :"<<K<<endl;
-    float TL;
+    float TL,TLprev;
+    TLprev = time_left;
     int om,oro,oc;
     int m,r,c;
     int d=3;
@@ -833,6 +835,13 @@ int main(int argc, char *argv[])
             cout<<TL<<" "<<d<<endl;
             if(nummoves>6){
                 gdepth=3;
+            }
+            if((TLprev-TL)>20.0){
+                down=true;
+            }
+            TLprev=TL;
+            if(down){
+                gdepth=2;
             }
             if(2<TL && TL<=timelimit){
                 gdepth=2;

@@ -1,2 +1,2 @@
-g++ -O2 client.cpp -o client
+g++ -O3 client.cpp -o client
 chmod +x client
